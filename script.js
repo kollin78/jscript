@@ -6,7 +6,7 @@ window.addEventListener('load', function() {
     let enemies = [];
     let score = 0;
     let gameOver = false;
-    const fullScreenButton = document.getElementById('fullScreenButton');
+    //const fullScreenButton = document.getElementById('fullScreenButton');
 
     class InputHandler {
         constructor() {
@@ -50,11 +50,39 @@ window.addEventListener('load', function() {
             });
         }
     }
+    
+    const states = {
+        SITTING: 0,
+        RUNNING: 1,
+        JUMPING: 2,
+        };
+        
+    class State {
+        constructor(state) {
+            this.state = state;
+        }
+    };
+    class Sitting extends State {
+        constructor(player) {
+            super('SITTING');
+            this.player = player;
+        }
+        enter() {
+            this.player.frameY = 5;
+        }
+        handleInput(input) {
+            if(input.includes('ArrowLeft') || input.includes('ArrowRight')) {
+                this.player.setState(0);
+            }
+        }
+    }
 
     class Player {
         constructor(gameWidth, gameHeight) {
             this.gameWidth = gameWidth;
             this.gameHeight = gameHeight;
+            this.states = [];
+            this.currentState = this.states[0]
             this.width = 200;
             this.height = 200;
             this.x = 0;
@@ -69,6 +97,10 @@ window.addEventListener('load', function() {
             this.speed = 0;
             this.vy = 0;
             this.weight = 1;
+            this.states = [new Sitting(this)];
+            this.currentState = this.states[0];
+            this.currentState.enter();
+
         }
         restart() {
             this.x = 100;
@@ -92,6 +124,7 @@ window.addEventListener('load', function() {
             context.drawImage(this.image, this.frameX * this.width, this.frameY * this.height, this.width, this.height, this.x, this.y, this.width, this.height)
         }
         update(input, deltaTime, enemies) {
+            this.currentState.handleInput(input);
             //collision detection
             enemies.forEach(enemy => {
                const dx = (enemy.x + enemy.width/2 - 20) - (this.x + this.width/2);
@@ -142,6 +175,10 @@ window.addEventListener('load', function() {
         }
         onGround() {
             return this.y >= this.gameHeight - this.height;
+        }
+        setState(state) {
+            this.currentState = this.states[state];
+            this.currentState.enter();
         }
     }
 
@@ -248,7 +285,7 @@ window.addEventListener('load', function() {
             context.fillText('GAME OVER, press ENTER or swipe down to try again!', canvas.width/2 + 2, 202);
         }
     }
-    
+    /*
     function toggleFullScreen() {
         if(!document.fullScreenElement) {
             canvas.requestFullscreen().catch(err => {
@@ -259,6 +296,7 @@ window.addEventListener('load', function() {
         }
     }
     fullScreenButton.addEventListener('click', toggleFullScreen);
+    */
     
     function restartGame() {
         player.restart();
